@@ -2,27 +2,13 @@ package main
 
 import (
 	"database/sql"
+	// "fmt"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
-// type Message struct {
-// 	SenderId string
-// 	RoomId   int
-// 	Msg      string
-// }
-//
-// type Room struct {
-// 	Id   int
-// 	Name string
-// }
-//
-// type User struct {
-// 	Nickname string `json:"nickname"`
-// }
-
 type Message struct {
-	// id       int
+	Id       int
 	SenderId string
 	RoomId   string
 	Content  string
@@ -43,18 +29,6 @@ func (sqliteDB SqliteDB) Close() {
 }
 
 func (sqliteDB SqliteDB) createTables() error {
-
-	// createMessageTable := `CREATE TABLE IF NOT EXISTS Messages (
-	// 	SenderId TEXT,
-	// 	RoomId INTEGER,
-	// 	Msg TEXT
-	// );`
-	//
-	// createRoomTable := `CREATE TABLE IF NOT EXISTS Rooms (
-	// 	Id INTEGER PRIMARY KEY AUTOINCREMENT,
-	// 	Name TEXT
-	// );`
-
 	createMessageTable := `CREATE TABLE IF NOT EXISTS Messages (
 		Id INTEGER PRIMARY KEY AUTOINCREMENT,
         SenderId TEXT,
@@ -66,15 +40,39 @@ func (sqliteDB SqliteDB) createTables() error {
 	return err
 }
 
-
 func (sqliteDB SqliteDB) insertMessage(message *Message) error {
-    _, err := sqliteDB.DB.Exec("INSERT INTO Messages (SenderId, RoomId, Content) VALUES (?, ?, ?)", 
-    message.SenderId, message.RoomId, message.Content)
-    return err
+	_, err := sqliteDB.DB.Exec("INSERT INTO Messages (SenderId, RoomId, Content) VALUES (?, ?, ?)",
+		message.SenderId, message.RoomId, message.Content)
+	return err
+}
+
+func (sqliteDB SqliteDB) queryAllmessages() ([]Message, error) {
+	rows, err := sqliteDB.DB.Query("SELECT * FROM Messages")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var messages []Message
+
+	// Loop through rows, using Scan to assign column data to struct fields.
+	for rows.Next() {
+		// var msg Message
+		msg := Message{}
+		if err := rows.Scan(&msg.Id, &msg.SenderId, &msg.RoomId, &msg.Content); err != nil {
+			return messages, err
+		} 
+		messages = append(messages, msg)
+	}
+	if err = rows.Err(); err != nil {
+		return messages, err
+	}
+	return messages, nil
 }
 
 func (sqliteDB SqliteDB) queryMessageByRoom(roomId string) (Message, error) {
 	message := Message{}
-	err := sqliteDB.DB.QueryRow("SELECT RoomId FROM Messages WHERE RoomId = ?", roomId).Scan(&message.RoomId)
+	err := sqliteDB.DB.QueryRow("SELECT * FROM Messages WHERE RoomId = ?", roomId).
+		Scan(&message.Id, &message.SenderId, &message.RoomId, &message.Content)
 	return message, err
 }

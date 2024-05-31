@@ -8,11 +8,11 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func getMessages(c *gin.Context) {
-	c.IndentedJSON(http.StatusOK, []Message{
-		{RoomId: "room1", SenderId: "sender1", Content: "message1"},
-		{RoomId: "room2", SenderId: "sender2", Content: "message2"},
-	})
+func getMessages(c *gin.Context, db *SqliteDB) {
+	messages, err := db.queryAllmessages()
+	if err == nil {
+		c.IndentedJSON(http.StatusOK, messages)
+	}
 }
 
 func main() {
@@ -29,13 +29,13 @@ func main() {
 	}
 
 	// Insert a test user
-	err = db.insertMessage(&Message{RoomId: "room1", SenderId: "sender1", Content: "message1"})
+	// err = db.insertMessage(&Message{RoomId: "room1", SenderId: "sender1", Content: "message1"})
 
-	if err != nil {
-		log.Println("Error inserting test user:", err)
-	} else {
-		log.Println("Inserted test user successfully")
-	}
+	// if err != nil {
+	// 	log.Println("Error inserting test user:", err)
+	// } else {
+	// 	log.Println("Inserted test user successfully")
+	// }
 
 	// Query the test user
 	user, err := db.queryMessageByRoom("room1")
@@ -45,6 +45,8 @@ func main() {
 	fmt.Println("Retrieved user:", user.Content)
 
 	router := gin.Default()
-	router.GET("/messages", getMessages)
-	router.Run("localhost:55667")
+	router.GET("/messages", func(c *gin.Context) {
+		getMessages(c, &db)
+	})
+	router.Run("0.0.0.0:55667")
 }
