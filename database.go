@@ -16,9 +16,16 @@ import (
 // 	Id   int
 // 	Name string
 // }
+//
+// type User struct {
+// 	Nickname string `json:"nickname"`
+// }
 
-type User struct {
-	Nickname string
+type Message struct {
+	// id       int
+	SenderId string
+	RoomId   string
+	Content  string
 }
 
 type SqliteDB struct {
@@ -48,29 +55,26 @@ func (sqliteDB SqliteDB) createTables() error {
 	// 	Name TEXT
 	// );`
 
-	createUserTable := `CREATE TABLE IF NOT EXISTS Users (
-		Nickname TEXT PRIMARY KEY
+	createMessageTable := `CREATE TABLE IF NOT EXISTS Messages (
+		Id INTEGER PRIMARY KEY AUTOINCREMENT,
+        SenderId TEXT,
+        RoomId TEXT,
+        Content TEXT
 	);`
 
-	// _, err := db.Exec(createMessageTable)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// _, err = db.Exec(createRoomTable)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	_, err := sqliteDB.DB.Exec(createUserTable)
+	_, err := sqliteDB.DB.Exec(createMessageTable)
 	return err
 }
 
-func (sqliteDB SqliteDB) insertUser(user *User) error {
-	_, err := sqliteDB.DB.Exec("INSERT INTO Users (Nickname) VALUES (?)", user.Nickname)
-	return err
+
+func (sqliteDB SqliteDB) insertMessage(message *Message) error {
+    _, err := sqliteDB.DB.Exec("INSERT INTO Messages (SenderId, RoomId, Content) VALUES (?, ?, ?)", 
+    message.SenderId, message.RoomId, message.Content)
+    return err
 }
-func (sqliteDB SqliteDB) queryUser(userId string) (User, error) {
-	user := User{}
-	err := sqliteDB.DB.QueryRow("SELECT Nickname FROM Users WHERE Nickname = ?", userId).Scan(&user.Nickname)
-	return user, err
+
+func (sqliteDB SqliteDB) queryMessageByRoom(roomId string) (Message, error) {
+	message := Message{}
+	err := sqliteDB.DB.QueryRow("SELECT RoomId FROM Messages WHERE RoomId = ?", roomId).Scan(&message.RoomId)
+	return message, err
 }
