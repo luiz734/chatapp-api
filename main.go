@@ -12,6 +12,12 @@ func getMessages(c *gin.Context, db *SqliteDB, roomId string) {
 		c.IndentedJSON(http.StatusOK, messages)
 	}
 }
+func deleteMessage(c *gin.Context, db *SqliteDB, messageId string) {
+	err := db.deleteMessage(messageId)
+	if err == nil {
+		c.String(http.StatusOK, "Deleted")
+	}
+}
 
 func main() {
 	// Create a database or open if it not exists
@@ -46,6 +52,12 @@ func main() {
     router.GET("/messages/:roomid", func(c *gin.Context) {
         roomId := c.Param("roomid")
 		getMessages(c, &db, roomId)
+
+	})
+
+    router.DELETE("/delete/:messageid", func(c *gin.Context) {
+        messageId := c.Param("messageid")
+        deleteMessage(c, &db, messageId)
 
 	})
 	router.Run("0.0.0.0:55667")

@@ -70,6 +70,15 @@ func (sqliteDB SqliteDB) queryMessagesByRoom(roomId string) ([]Message, error) {
 	return messages, nil
 }
 
+func (sqliteDB SqliteDB) deleteMessage(messageId string) (error) {
+	_, err := sqliteDB.DB.Exec("DELETE FROM messages WHERE Id = ?", messageId)
+    if err != nil {
+        panic(err)
+    }
+    return err
+
+}
+
 // func (sqliteDB SqliteDB) queryMessageByRoom(roomId string) (Message, error) {
 // 	message := Message{}
 // 	err := sqliteDB.DB.QueryRow("SELECT * FROM Messages WHERE RoomId = ?", roomId).
