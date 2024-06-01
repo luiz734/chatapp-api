@@ -2,8 +2,6 @@ package main
 
 import (
 	"database/sql"
-	// "fmt"
-
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -76,12 +74,4 @@ func (sqliteDB SqliteDB) deleteMessage(messageId string) (error) {
         panic(err)
     }
     return err
-
 }
-
-// func (sqliteDB SqliteDB) queryMessageByRoom(roomId string) (Message, error) {
-// 	message := Message{}
-// 	err := sqliteDB.DB.QueryRow("SELECT * FROM Messages WHERE RoomId = ?", roomId).
-// 		Scan(&message.Id, &message.SenderId, &message.RoomId, &message.Content)
-// 	return message, err
-// }

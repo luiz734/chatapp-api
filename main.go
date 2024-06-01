@@ -18,6 +18,12 @@ func deleteMessage(c *gin.Context, db *SqliteDB, messageId string) {
 		c.String(http.StatusOK, "Deleted")
 	}
 }
+func addNewMessage(c *gin.Context, db *SqliteDB, message Message) {
+	err := db.insertMessage(&message)
+	if err == nil {
+		c.String(http.StatusCreated, "Added")
+	}
+}
 
 func main() {
 	// Create a database or open if it not exists
@@ -49,16 +55,25 @@ func main() {
 	// fmt.Println("Retrieved user:", user.Content)
 
 	router := gin.Default()
-    router.GET("/messages/:roomid", func(c *gin.Context) {
-        roomId := c.Param("roomid")
+	router.GET("/messages/:roomid", func(c *gin.Context) {
+		roomId := c.Param("roomid")
 		getMessages(c, &db, roomId)
 
 	})
 
-    router.DELETE("/delete/:messageid", func(c *gin.Context) {
-        messageId := c.Param("messageid")
-        deleteMessage(c, &db, messageId)
+	router.DELETE("/delete/:messageid", func(c *gin.Context) {
+		messageId := c.Param("messageid")
+		deleteMessage(c, &db, messageId)
 
+	})
+
+	router.POST("/newMessage", func(c *gin.Context) {
+		var newMessage Message
+		if err := c.ShouldBindJSON(&newMessage); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
+			return
+		}
+		addNewMessage(c, &db, newMessage)
 	})
 	router.Run("0.0.0.0:55667")
 }
