@@ -1,15 +1,13 @@
 package main
 
 import (
-	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-func getMessages(c *gin.Context, db *SqliteDB) {
-	messages, err := db.queryAllmessages()
+func getMessages(c *gin.Context, db *SqliteDB, roomId string) {
+	messages, err := db.queryMessagesByRoom(roomId)
 	if err == nil {
 		c.IndentedJSON(http.StatusOK, messages)
 	}
@@ -38,15 +36,17 @@ func main() {
 	// }
 
 	// Query the test user
-	user, err := db.queryMessageByRoom("room1")
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("Retrieved user:", user.Content)
+	// user, err := db.queryMessageByRoom("room1")
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// fmt.Println("Retrieved user:", user.Content)
 
 	router := gin.Default()
-	router.GET("/messages", func(c *gin.Context) {
-		getMessages(c, &db)
+    router.GET("/messages/:roomid", func(c *gin.Context) {
+        roomId := c.Param("roomid")
+		getMessages(c, &db, roomId)
+
 	})
 	router.Run("0.0.0.0:55667")
 }

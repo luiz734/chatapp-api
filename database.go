@@ -46,8 +46,8 @@ func (sqliteDB SqliteDB) insertMessage(message *Message) error {
 	return err
 }
 
-func (sqliteDB SqliteDB) queryAllmessages() ([]Message, error) {
-	rows, err := sqliteDB.DB.Query("SELECT * FROM Messages")
+func (sqliteDB SqliteDB) queryMessagesByRoom(roomId string) ([]Message, error) {
+	rows, err := sqliteDB.DB.Query("SELECT * FROM Messages WHERE RoomId = ?", roomId)
 	if err != nil {
 		return nil, err
 	}
@@ -70,9 +70,9 @@ func (sqliteDB SqliteDB) queryAllmessages() ([]Message, error) {
 	return messages, nil
 }
 
-func (sqliteDB SqliteDB) queryMessageByRoom(roomId string) (Message, error) {
-	message := Message{}
-	err := sqliteDB.DB.QueryRow("SELECT * FROM Messages WHERE RoomId = ?", roomId).
-		Scan(&message.Id, &message.SenderId, &message.RoomId, &message.Content)
-	return message, err
-}
+// func (sqliteDB SqliteDB) queryMessageByRoom(roomId string) (Message, error) {
+// 	message := Message{}
+// 	err := sqliteDB.DB.QueryRow("SELECT * FROM Messages WHERE RoomId = ?", roomId).
+// 		Scan(&message.Id, &message.SenderId, &message.RoomId, &message.Content)
+// 	return message, err
+// }
