@@ -25,6 +25,17 @@ func addNewMessage(c *gin.Context, db *SqliteDB, message Message) {
 	}
 }
 
+func updateMessage(c *gin.Context, db *SqliteDB, messageId string, newContent string) {
+	rowsAffected, err := db.updateMessage(messageId, newContent)
+	if err == nil {
+		if rowsAffected == 0 {
+			c.JSON(http.StatusNotFound, gin.H{"error": "Message not found"})
+		} else {
+			c.String(http.StatusOK, "Message updated successfully")
+		}
+	}
+}
+
 func main() {
 	// Create a database or open if it not exists
 	db, err := NewSqliteDB("database.db")
@@ -74,6 +85,18 @@ func main() {
 			return
 		}
 		addNewMessage(c, &db, newMessage)
+	})
+
+	router.PUT("/updateMessage/:id", func(c *gin.Context) {
+		var newMessage Message
+		id := c.Param("id")
+
+		if err := c.ShouldBindJSON(&newMessage); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
+			return
+		}
+
+		updateMessage(c, &db, id, newMessage.Content)
 	})
 	router.Run("0.0.0.0:55667")
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -59,7 +60,7 @@ func (sqliteDB SqliteDB) queryMessagesByRoom(roomId string) ([]Message, error) {
 		msg := Message{}
 		if err := rows.Scan(&msg.Id, &msg.SenderId, &msg.RoomId, &msg.Content); err != nil {
 			return messages, err
-		} 
+		}
 		messages = append(messages, msg)
 	}
 	if err = rows.Err(); err != nil {
@@ -68,10 +69,27 @@ func (sqliteDB SqliteDB) queryMessagesByRoom(roomId string) ([]Message, error) {
 	return messages, nil
 }
 
-func (sqliteDB SqliteDB) deleteMessage(messageId string) (error) {
+func (sqliteDB SqliteDB) deleteMessage(messageId string) error {
 	_, err := sqliteDB.DB.Exec("DELETE FROM messages WHERE Id = ?", messageId)
-    if err != nil {
-        panic(err)
-    }
-    return err
+	if err != nil {
+		panic(err)
+	}
+	return err
+}
+
+func (sqliteDB SqliteDB) updateMessage(messageId string, newContent string) (int64, error) {
+	stmt, err := sqliteDB.DB.Prepare("UPDATE Messages SET Content = ? WHERE Id = ?")
+	if err != nil {
+		// c.JSON(http.StatusInternalServerError, gin.H{"error": "Database preparation error"})
+		return 0, err
+	}
+	defer stmt.Close()
+
+	res, err := stmt.Exec(newContent, messageId)
+	if err != nil {
+		// c.JSON(http.StatusInternalServerError, gin.H{"error": "Database execution error"})
+		return 0, err
+	}
+
+	return res.RowsAffected()
 }
