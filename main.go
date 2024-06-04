@@ -1,29 +1,30 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
 func CORSMiddleware() gin.HandlerFunc {
-    return func(c *gin.Context) {
-        c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
-        c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
-        c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Authorization, X-Requested-With")
-        c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Authorization, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 
-        if c.Request.Method == "OPTIONS" {
-            c.AbortWithStatus(204)
-            return
-        }
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
 
-        c.Next()
-    }
+		c.Next()
+	}
 }
 
 func getMessages(c *gin.Context, db *SqliteDB, roomId string) {
-	
+
 	messages, err := db.queryMessagesByRoom(roomId)
 	if err == nil {
 		c.IndentedJSON(http.StatusOK, messages)
@@ -57,6 +58,15 @@ func updateMessage(c *gin.Context, db *SqliteDB, messageId string, newContent st
 }
 
 func main() {
+	var crypt Crypt
+	if !KeysExists() {
+		CreateKeyPair()
+	}
+	crypt.loadKeys()
+	a := crypt.encrypt([]byte("hello"))
+	b := crypt.decrypt(a)
+	fmt.Println(string(b))
+
 	// Create a database or open if it not exists
 	db, err := NewSqliteDB("database.db")
 	if err != nil {
@@ -84,12 +94,19 @@ func main() {
 	// 	log.Fatal(err)
 	// }
 	// fmt.Println("Retrieved user:", user.Content)
-	
-	
-    router := gin.Default()
 
-    // Use the CORS middleware
-    router.Use(CORSMiddleware())
+	router := gin.Default()
+
+	// Use the CORS middleware
+	router.Use(CORSMiddleware())
+
+	router.GET("/key", func(c *gin.Context) {
+		c.Header("Content-Description", "File Transfer")
+		c.Header("Content-Transfer-Encoding", "binary")
+		c.Header("Content-Disposition", "attachment; filename=public.pem")
+		c.Header("Content-Type", "application/octet-stream")
+        c.Writer.Write(crypt.PublicKeyPem)
+	})
 
 	router.GET("/messages/:roomid", func(c *gin.Context) {
 		roomId := c.Param("roomid")
