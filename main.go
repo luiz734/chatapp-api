@@ -109,10 +109,10 @@ func main() {
 	router.Use(CORSMiddleware())
 
 	router.GET("/key", func(c *gin.Context) {
-		c.Header("Content-Description", "File Transfer")
-		c.Header("Content-Transfer-Encoding", "binary")
-		c.Header("Content-Disposition", "attachment; filename=public.pem")
-		c.Header("Content-Type", "application/octet-stream")
+		// c.Header("Content-Description", "File Transfer")
+		// c.Header("Content-Transfer-Encoding", "binary")
+		// c.Header("Content-Disposition", "attachment; filename=public.pem")
+		// c.Header("Content-Type", "application/octet-stream")
 		c.Writer.Write(crypt.PublicKeyPem)
 	})
 
