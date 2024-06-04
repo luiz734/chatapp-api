@@ -7,10 +7,12 @@ import (
 )
 
 type Message struct {
-	Id       int
-	SenderId string
-	RoomId   string
-	Content  string
+	Id          int    `json:"id,omitempty"`
+	SenderId    string `json:"senderid" binding:"required"`
+	RoomId      string `json:"roomid" binding:"required"`
+	Content     string `json:"content" binding:"required"`
+	Attachment  []byte `json:"-"`
+	ImageBase64 string `json:"imageBase64,omitempty"`
 }
 
 type SqliteDB struct {
@@ -32,7 +34,8 @@ func (sqliteDB SqliteDB) createTables() error {
 		Id INTEGER PRIMARY KEY AUTOINCREMENT,
         SenderId TEXT,
         RoomId TEXT,
-        Content TEXT
+        Content TEXT,
+        Attachment BLOB
 	);`
 
 	_, err := sqliteDB.DB.Exec(createMessageTable)
@@ -40,8 +43,8 @@ func (sqliteDB SqliteDB) createTables() error {
 }
 
 func (sqliteDB SqliteDB) insertMessage(message *Message) error {
-	_, err := sqliteDB.DB.Exec("INSERT INTO Messages (SenderId, RoomId, Content) VALUES (?, ?, ?)",
-		message.SenderId, message.RoomId, message.Content)
+	_, err := sqliteDB.DB.Exec("INSERT INTO Messages (SenderId, RoomId, Content, Attachment) VALUES (?, ?, ?, ?)",
+		message.SenderId, message.RoomId, message.Content, message.Attachment)
 	return err
 }
 
@@ -58,9 +61,15 @@ func (sqliteDB SqliteDB) queryMessagesByRoom(roomId string) ([]Message, error) {
 	for rows.Next() {
 		// var msg Message
 		msg := Message{}
-		if err := rows.Scan(&msg.Id, &msg.SenderId, &msg.RoomId, &msg.Content); err != nil {
+		var attachment sql.RawBytes
+
+		if err := rows.Scan(&msg.Id, &msg.SenderId, &msg.RoomId, &msg.Content, &attachment); err != nil {
 			return messages, err
 		}
+		if attachment != nil {
+			msg.Attachment = []byte(attachment)
+		}
+
 		messages = append(messages, msg)
 	}
 	if err = rows.Err(); err != nil {
