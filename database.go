@@ -7,13 +7,14 @@ import (
 )
 
 type Message struct {
-	Id          int    `json:"id,omitempty"`
-	SenderId    string `json:"senderid"`
-	RoomId      string `json:"roomid"`
-	Content     string `json:"content"`
-	Attachment  []byte `json:"-"`
-	ImageBase64 string `json:"imageBase64,omitempty"`
-	Signature   []byte `json:"signature,omitempty"`
+	Id       int    `json:"id,omitempty"`
+	SenderId string `json:"senderid"`
+	RoomId   string `json:"roomid"`
+	Content  string `json:"content"`
+	// Attachment []byte `json:"-"`
+	// ImageBase64 string `json:"imageBase64,omitempty"`
+    ImageId   string `json:"imgid"`
+	Signature []byte `json:"signature,omitempty"`
 }
 
 type SqliteDB struct {
@@ -36,7 +37,7 @@ func (sqliteDB SqliteDB) createTables() error {
         SenderId TEXT,
         RoomId TEXT,
         Content TEXT,
-        Attachment BLOB
+        ImageId TEXT
 	);`
 
 	_, err := sqliteDB.DB.Exec(createMessageTable)
@@ -45,15 +46,15 @@ func (sqliteDB SqliteDB) createTables() error {
 
 func (sqliteDB SqliteDB) insertMessage(message *Message) error {
 	var err error
-	if message.Attachment == nil {
-		_, err = sqliteDB.DB.Exec(
-			"INSERT INTO Messages (SenderId, RoomId, Content) VALUES (?, ?, ?)",
-			message.SenderId, message.RoomId, message.Content)
-	} else {
-		_, err = sqliteDB.DB.Exec(
-			"INSERT INTO Messages (SenderId, RoomId, Content, Attachment) VALUES (?, ?, ?, ?)",
-			message.SenderId, message.RoomId, message.Content, message.Attachment)
-	}
+	_, err = sqliteDB.DB.Exec(
+		"INSERT INTO Messages (SenderId, RoomId, Content, ImageId) VALUES (?, ?, ?, ?)",
+		message.SenderId, message.RoomId, message.Content, message.ImageId)
+	// if message.Attachment == nil {
+	// } else {
+	// 	_, err = sqliteDB.DB.Exec(
+	// 		"INSERT INTO Messages (SenderId, RoomId, Content, Attachment) VALUES (?, ?, ?, ?)",
+	// 		message.SenderId, message.RoomId, message.Content, message.Attachment)
+	// }
 	return err
 }
 
@@ -70,14 +71,13 @@ func (sqliteDB SqliteDB) queryMessagesByRoom(roomId string) ([]Message, error) {
 	for rows.Next() {
 		// var msg Message
 		msg := Message{}
-		var attachment sql.RawBytes
 
-		if err := rows.Scan(&msg.Id, &msg.SenderId, &msg.RoomId, &msg.Content, &attachment); err != nil {
+		if err := rows.Scan(&msg.Id, &msg.SenderId, &msg.RoomId, &msg.Content, &msg.ImageId); err != nil {
 			return messages, err
 		}
-		if attachment != nil {
-			msg.Attachment = []byte(attachment)
-		}
+		// if attachment != nil {
+		// 	msg.Attachment = []byte(attachment)
+		// }
 
 		messages = append(messages, msg)
 	}

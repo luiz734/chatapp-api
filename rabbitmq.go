@@ -2,13 +2,14 @@ package main
 
 import (
 	"context"
-	amqp "github.com/rabbitmq/amqp091-go"
 	"log"
 	"time"
+
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
-func enqueueImage(data []byte, filename string) []byte {
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+func enqueueImage(data []byte, filename string) string {
+	conn, err := amqp.Dial("amqp://guest:guest@localhost:5671/")
 	failOnError(err, "Failed to connect rabbimq server")
 	defer conn.Close()
 
@@ -74,8 +75,7 @@ func enqueueImage(data []byte, filename string) []byte {
 	// Wait for a response from the worker
 	for d := range msgs {
 		if d.CorrelationId == "unique-correlation-id" {
-            log.Printf("Done")
-            return d.Body
+            return string(d.Body)
 		}
 	}
     panic("error")
