@@ -8,9 +8,9 @@ import (
 
 type Message struct {
 	Id          int    `json:"id,omitempty"`
-	SenderId    string `json:"senderid" binding:"required"`
-	RoomId      string `json:"roomid" binding:"required"`
-	Content     string `json:"content" binding:"required"`
+	SenderId    string `json:"senderid"`
+	RoomId      string `json:"roomid"`
+	Content     string `json:"content"`
 	Attachment  []byte `json:"-"`
 	ImageBase64 string `json:"imageBase64,omitempty"`
 }

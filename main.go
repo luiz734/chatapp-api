@@ -193,6 +193,7 @@ func main() {
 		var newMessage Message
 		id := c.Param("id")
 		if err := c.ShouldBindJSON(&newMessage); err != nil {
+            // panic(err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid JSON"})
 			return
 		}
