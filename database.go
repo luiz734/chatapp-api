@@ -43,8 +43,16 @@ func (sqliteDB SqliteDB) createTables() error {
 }
 
 func (sqliteDB SqliteDB) insertMessage(message *Message) error {
-	_, err := sqliteDB.DB.Exec("INSERT INTO Messages (SenderId, RoomId, Content, Attachment) VALUES (?, ?, ?, ?)",
-		message.SenderId, message.RoomId, message.Content, message.Attachment)
+	var err error
+	if message.Attachment == nil {
+		_, err = sqliteDB.DB.Exec(
+			"INSERT INTO Messages (SenderId, RoomId, Content, Attachment) VALUES (?, ?, ?, ?)",
+			message.SenderId, message.RoomId, message.Content, message.Attachment)
+	} else {
+		_, err = sqliteDB.DB.Exec(
+			"INSERT INTO Messages (SenderId, RoomId, Content) VALUES (?, ?, ?)",
+			message.SenderId, message.RoomId, message.Content)
+	}
 	return err
 }
 

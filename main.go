@@ -2,7 +2,7 @@ package main
 
 import (
 	"encoding/base64"
-	"fmt"
+	// "fmt"
 	"io"
 	"log"
 	"net/http"
@@ -141,9 +141,15 @@ func main() {
 	})
 
 	router.POST("/newMessage", func(c *gin.Context) {
+		var newMessage Message
 		if err := c.Request.ParseMultipartForm(10 << 20); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Error parsing form data"})
-			return
+			if err := c.ShouldBindJSON(&newMessage); err != nil {
+                // panic(err)
+				c.JSON(http.StatusBadRequest, gin.H{"error": "Error parsing form data"})
+			} else {
+                addNewMessage(c, &db, newMessage)
+            }
+            return
 		}
 
 		// Extract form values
@@ -152,7 +158,7 @@ func main() {
 		content := c.Request.FormValue("content")
 
 		// Create the new message
-		newMessage := Message{
+		newMessage = Message{
 			SenderId: senderId,
 			RoomId:   roomId,
 			Content:  content,
@@ -162,7 +168,8 @@ func main() {
 		file, _, err := c.Request.FormFile("attachment")
 		if err != nil {
 			if err != http.ErrMissingFile { // If the file is not provided, it's okay
-				c.JSON(http.StatusBadRequest, gin.H{"error": "Error retrieving the file"})
+				// c.JSON(http.StatusBadRequest, gin.H{"error": "Error retrieving the file"})
+				c.JSON(http.StatusCreated, gin.H{"message": "Message created successfully"})
 				return
 			}
 		} else {
@@ -193,5 +200,5 @@ func main() {
 	})
 	router.Run("0.0.0.0:55667")
 
-	_ = fmt.Append
+	// _ = fmt.Append
 }
