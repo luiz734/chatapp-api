@@ -13,6 +13,7 @@ type Message struct {
 	Content     string `json:"content"`
 	Attachment  []byte `json:"-"`
 	ImageBase64 string `json:"imageBase64,omitempty"`
+	Signature   []byte `json:"signature,omitempty"`
 }
 
 type SqliteDB struct {
@@ -46,12 +47,12 @@ func (sqliteDB SqliteDB) insertMessage(message *Message) error {
 	var err error
 	if message.Attachment == nil {
 		_, err = sqliteDB.DB.Exec(
-			"INSERT INTO Messages (SenderId, RoomId, Content, Attachment) VALUES (?, ?, ?, ?)",
-			message.SenderId, message.RoomId, message.Content, message.Attachment)
-	} else {
-		_, err = sqliteDB.DB.Exec(
 			"INSERT INTO Messages (SenderId, RoomId, Content) VALUES (?, ?, ?)",
 			message.SenderId, message.RoomId, message.Content)
+	} else {
+		_, err = sqliteDB.DB.Exec(
+			"INSERT INTO Messages (SenderId, RoomId, Content, Attachment) VALUES (?, ?, ?, ?)",
+			message.SenderId, message.RoomId, message.Content, message.Attachment)
 	}
 	return err
 }

@@ -1,8 +1,10 @@
 package main
 
 import (
+	"crypto"
 	"crypto/rand"
 	"crypto/rsa"
+	"crypto/sha256"
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
@@ -80,16 +82,29 @@ func (crypt *Crypt) loadKeys() {
 
 	crypt.PublicKey = publicKey.(*rsa.PublicKey)
 	crypt.PrivateKey = privateKey
-    crypt.PublicKeyPem = publicKeyPEM
+	crypt.PublicKeyPem = publicKeyPEM
 }
 
-func (c Crypt) encrypt(plaintext []byte) []byte {
-	ciphertext, err := rsa.EncryptPKCS1v15(rand.Reader, c.PublicKey, plaintext)
+// func (c Crypt) encrypt(plaintext []byte) string {
+// 	ciphertext, err := rsa.EncryptPKCS1v15(rand.Reader, c.PublicKey, plaintext)
+// 	if err != nil {
+// 		panic(err)
+// 	}
+// 	// fmt.Printf("Encrypted: %x\n", ciphertext)
+// 	encodedCiphertext := base64.StdEncoding.EncodeToString(ciphertext)
+// 	return encodedCiphertext
+// }
+
+func (c Crypt) sign(message []byte) []byte {
+	hashed := sha256.Sum256(message)
+	// Sign the hashed message
+	signature, err := rsa.SignPKCS1v15(rand.Reader, c.PrivateKey, crypto.SHA256, hashed[:])
 	if err != nil {
 		panic(err)
 	}
-	// fmt.Printf("Encrypted: %x\n", ciphertext)
-	return ciphertext
+
+	// encodedCiphertext := base64.StdEncoding.EncodeToString(ciphertext)
+	return signature
 }
 
 func (c Crypt) decrypt(ciphertext []byte) []byte {

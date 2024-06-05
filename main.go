@@ -34,8 +34,8 @@ func getMessages(c *gin.Context, db *SqliteDB, roomId string, crypt Crypt) {
 
 	for i, m := range messages {
 		// Encrypt the content
-		encryptedContent := crypt.encrypt([]byte(m.Content))
-		messages[i].Content = string(encryptedContent)
+		// encryptedContent := crypt.encrypt([]byte(m.Content))
+        messages[i].Signature = crypt.sign([]byte(messages[i].Content))
 
 		// Encode the attachment to base64 if it exists
 		if m.Attachment != nil {
