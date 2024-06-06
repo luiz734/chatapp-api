@@ -138,7 +138,7 @@ func main() {
 
 	err = db.createTables()
 	if err != nil {
-		panic("Can't create tables")
+		panic(err)
 	}
 
 	router := gin.Default()
