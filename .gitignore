@@ -2,5 +2,5 @@ database.db
 chatapp-api*
 # *.pem
 *.jpeg
-images/.png
-images/.jpg
+images/*.png
+images/*.jpg

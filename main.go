@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"strings"
+
+	// "strings"
 
 	// "fmt"
 	"io"
@@ -55,19 +56,19 @@ func getMessages(c *gin.Context, db *SqliteDB, roomId string, crypt Crypt) {
 	}
 }
 func getImage(c *gin.Context, imgId string) {
-    // Construct the file path
-    filePath := "./images/" + imgId
+	// Construct the file path
+	filePath := "./images/" + imgId
 
-    fmt.Println(filePath)
-    // Check if the file exists
-    if _, err := os.Stat(filePath); os.IsNotExist(err) {
-        // File does not exist, return a 404 status
-        c.JSON(http.StatusNotFound, gin.H{"message": "Image not found"})
-        return
-    }
+	fmt.Println(filePath)
+	// Check if the file exists
+	if _, err := os.Stat(filePath); os.IsNotExist(err) {
+		// File does not exist, return a 404 status
+		c.JSON(http.StatusNotFound, gin.H{"message": "Image not found"})
+		return
+	}
 
-    // Serve the file
-    c.File(filePath)
+	// Serve the file
+	c.File(filePath)
 }
 
 func deleteMessage(c *gin.Context, db *SqliteDB, messageId string) {
@@ -213,15 +214,15 @@ func main() {
 				return
 			}
 
-			imgName := fmt.Sprintf("img_%s", strconv.Itoa(rand.Int()))
-			imgId := enqueueImage(attachment, imgName)
-			parts := strings.Split(imgId, "/")
-			imgName = parts[len(parts)-1]
-            newMessage.ImageId = imgName
+			imgFileName := fmt.Sprintf("img_%s", strconv.Itoa(rand.Int()))
+			outputBytes := enqueueImage(attachment, imgFileName)
+            format, err := saveBytesAsImg([]byte(outputBytes), imgFileName)
+            if err != nil {
+                panic(err)
+            }
 
-			fmt.Printf(imgId)
-			// fmt.Sprint("%s%s%s", newMessage.SenderId, newMessage.RoomId))
-			// newMessage.Attachment = compressedImg
+			newMessage.ImageId = imgFileName + "." + format
+
 		}
 		// Insert the new message
 		addNewMessage(c, &db, newMessage)
